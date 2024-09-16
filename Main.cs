@@ -22,7 +22,7 @@ namespace ichortower.TaterToss
         private static Vector2 SavedChildPosition;
         private static int SavedChildFacingDirection;
         private static int SavedFarmerFacingDirection;
-        private static bool SavedWalkingInSquare;
+        private static bool SavedChildWalkingInSquare;
         private static PathFindController SavedChildController;
 
         private static string TossingChildName = "";
@@ -119,9 +119,10 @@ namespace ichortower.TaterToss
             if (WasHoldingHat) {
                 return;
             }
-            if (__instance.idOfParent.Value != who.UniqueMultiplayerID) {
-                return;
-            }
+            // removed check to limit tossing to own children
+            //if (__instance.idOfParent.Value != who.UniqueMultiplayerID) {
+                //return;
+            //}
             // we are skipping Child.toss, so duplicate some of its guards
             if (__instance.IsInvisible || Game1.timeOfDay >= 1800) {
                 return;
@@ -130,7 +131,7 @@ namespace ichortower.TaterToss
             SavedChildFacingDirection = GetChildFacingDirection(__instance);
             SavedFarmerFacingDirection = who.FacingDirection;
             SavedChildController = __instance.controller ?? null;
-            SavedWalkingInSquare = __instance.IsWalkingInSquare;
+            SavedChildWalkingInSquare = __instance.IsWalkingInSquare;
             __instance.Halt();
             __instance.controller = null;
             __instance.IsWalkingInSquare = false;
@@ -152,7 +153,7 @@ namespace ichortower.TaterToss
             if (c.Age >= 3) {
                 return c.FacingDirection;
             }
-            int row = (c.Sprite.CurrentFrame - 24) / 4;
+            int row = Math.Max(0, c.Sprite.CurrentFrame - 24) / 4;
             int[] map = new int[] {2, 1, 0, 3, 2, 2};
             return map[row];
         }
@@ -194,7 +195,7 @@ namespace ichortower.TaterToss
             if (__instance.Age == 2) {
                 __instance.Sprite.CurrentFrame += 24;
             }
-            __instance.IsWalkingInSquare = SavedWalkingInSquare;
+            __instance.IsWalkingInSquare = SavedChildWalkingInSquare;
             if (SavedChildController != null) {
                 __instance.controller = SavedChildController;
             }
