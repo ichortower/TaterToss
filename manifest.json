@@ -6,6 +6,6 @@
 	"UniqueID": "ichortower.TaterToss",
 	"EntryDll": "TaterToss.dll",
 	"MinimumApiVersion": "4.0.0",
-	"UpdateKeys": ["Nexus:-1"],
+	"UpdateKeys": ["Nexus:27831", "GitHub:ichortower/TaterToss"],
 	"Dependencies": []
 }
