@@ -21,6 +21,11 @@ uses only one skipping prefix, which is to prevent children from trying to walk
 around during a toss; if the child skips an update like this, it will attempt
 to update after landing.
 
+This should be compatible with any mod that changes your children's sprites,
+since it uses vanilla frames. However, it won't work with any of the mods that
+turn your children into NPCs, since (I believe) they stop being the Child type
+of NPC that this mod works on.
+
 I don't yet know of any specific conflicts. Please let me know if you find any!
 
 ## Known Issues
