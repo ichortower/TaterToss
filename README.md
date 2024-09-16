@@ -1,6 +1,6 @@
 # Tater Toss - Throw Your Toddlers
 
-This is a small Stardew Valley mod which patches in the ability to toss your
+This is a small Stardew Valley mod which patches in the ability to toss
 children after they have grown older and left the crib. Now you can enjoy
 throwing them for much longer!
 
@@ -28,8 +28,9 @@ I don't yet know of any specific conflicts. Please let me know if you find any!
 * In multiplayer, when you toss a child, the other players will see you pick up
     the child, but they won't see it fly into the air. This is vanilla behavior,
     since the child's jump status does not fully sync between players.
-* In multiplayer, when you toss a crawling child, the other players may see
-    swaddled-infant frames instead of crawling ones from time to time (after
-    the toss, the child will quickly return to normal). I believe this is also
-    due to inconsistent sync, but haven't figured out a workaround yet.
-
+* In multiplayer, when tossing a crawling child, farmhands may see
+    swaddled-infant frames instead of crawling ones (after the toss, the child
+    will quickly return to normal). I believe this is also due to inconsistent
+    sync, but I haven't figured out a workaround yet.
+* In multiplayer, farmhands may not be able to fully stop a walking toddler
+    when tossing them. Like above, I haven't found a solution yet.
