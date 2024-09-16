@@ -1,0 +1,11 @@
+{
+	"Name": "Tater Toss - Throw Your Toddlers",
+	"Author": "ichortower",
+	"Description": "Allows you to throw crawler- and toddler-aged children.",
+	"Version": "1.0.0",
+	"UniqueID": "ichortower.TaterToss",
+	"EntryDll": "TaterToss.dll",
+	"MinimumApiVersion": "4.0.0",
+	"UpdateKeys": ["Nexus:-1"],
+	"Dependencies": []
+}
