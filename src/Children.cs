@@ -14,11 +14,8 @@ using System.Reflection.Emit;
 
 namespace ichortower.TaterToss
 {
-    internal sealed class Main : Mod
+    internal sealed class Children
     {
-        public static Main instance = null;
-        public static string ModId = null;
-
         private static Vector2 SavedChildPosition;
         private static int SavedChildFacingDirection;
         private static int SavedFarmerFacingDirection;
@@ -29,11 +26,8 @@ namespace ichortower.TaterToss
         private static int SkippedUpdates = 0;
         private static bool WasHoldingHat = false;
 
-        public override void Entry(IModHelper helper)
+        public static void ApplyPatches(Harmony harmony)
         {
-            instance = this;
-            ModId = this.ModManifest.UniqueID;
-            Harmony harmony = new(ModId);
             try {
                 MethodInfo Child_checkAction = typeof(Child).GetMethod(
                         nameof(Child.checkAction),
@@ -58,29 +52,28 @@ namespace ichortower.TaterToss
                         null, new Type[]{typeof(SpriteBatch), typeof(float)},
                         null);
                 harmony.Patch(Child_checkAction,
-                        prefix: new HarmonyMethod(typeof(Main),
+                        prefix: new HarmonyMethod(typeof(Children),
                             "Child_checkAction_Prefix"),
-                        postfix: new HarmonyMethod(typeof(Main),
+                        postfix: new HarmonyMethod(typeof(Children),
                             "Child_checkAction_Postfix"));
                 harmony.Patch(Child_performToss,
-                        postfix: new HarmonyMethod(typeof(Main),
+                        postfix: new HarmonyMethod(typeof(Children),
                             "Child_performToss_Postfix"));
                 harmony.Patch(Child_doneTossing,
-                        postfix: new HarmonyMethod(typeof(Main),
+                        postfix: new HarmonyMethod(typeof(Children),
                             "Child_doneTossing_Postfix"));
                 harmony.Patch(Child_tenMinuteUpdate,
-                        prefix: new HarmonyMethod(typeof(Main),
+                        prefix: new HarmonyMethod(typeof(Children),
                             "Child_tenMinuteUpdate_Prefix"));
                 harmony.Patch(Child_draw1,
-                        transpiler: new HarmonyMethod(typeof(Main),
+                        transpiler: new HarmonyMethod(typeof(Children),
                             "Child_draw1_Transpiler"));
                 harmony.Patch(Child_draw2,
-                        transpiler: new HarmonyMethod(typeof(Main),
+                        transpiler: new HarmonyMethod(typeof(Children),
                             "Child_draw2_Transpiler"));
             }
-            catch (Exception e) {
-                Monitor.Log("Could not apply required Harmony patch: " +
-                        $"{e}", LogLevel.Error);
+            catch(Exception e) {
+                Main.instance.Monitor.Log($"Patch failed: {e}", LogLevel.Error);
             }
         }
 
@@ -302,5 +295,4 @@ namespace ichortower.TaterToss
         }
 
     }
-
 }
