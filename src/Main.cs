@@ -20,7 +20,13 @@ namespace ichortower.TaterToss
             Harmony harmony = new(ModId);
             Children.ApplyPatches(harmony);
             FarmAnimals.ApplyPatches(harmony);
+            helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             helper.Events.GameLoop.DayStarted += OnDayStarted;
+        }
+
+        private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+        {
+            GMCMIntegration.Setup();
         }
 
         private void OnDayStarted(object sender, DayStartedEventArgs e)
