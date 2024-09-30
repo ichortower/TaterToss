@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Characters;
+using StardewValley.Network;
 using StardewValley.Objects;
 using StardewValley.Pathfinding;
 using StardewModdingAPI;
@@ -17,6 +18,20 @@ namespace ichortower.TaterToss
     internal sealed class FarmAnimals
     {
         private static bool WasAlreadyPet = false;
+        private static NetMutex CurrentMutex = null;
+
+        public static HashSet<long> EarnedTossFriendship = new();
+
+        /*
+         * Feels yucky to use the global inventory mutex dict for this, but
+         * it's probably better to do that than try to set it up myself and
+         * have countless bugs.
+         */
+        private static NetMutex GuaranteeAnimalMutex(FarmAnimal fa)
+        {
+            string key = $"{Main.ModId}/{fa.myID.Value}";
+            return Game1.player.team.GetOrCreateGlobalInventoryMutex(key);
+        }
 
         public static void ApplyPatches(Harmony harmony)
         {
@@ -75,7 +90,20 @@ namespace ichortower.TaterToss
                 return;
             }
             Game1.exitActiveMenu();
-            PerformAnimalToss(__instance, who);
+            RequestToss(__instance, who);
+        }
+
+        private static void RequestToss(FarmAnimal fa, Farmer who)
+        {
+            CurrentMutex = GuaranteeAnimalMutex(fa);
+            if (who == Game1.player) {
+                CurrentMutex.RequestLock(delegate {
+                    PerformAnimalToss(fa, who);
+                });
+            }
+            else {
+                PerformAnimalToss(fa, who);
+            }
         }
 
         private static void PerformAnimalToss(FarmAnimal fa, Farmer who)
@@ -106,8 +134,16 @@ namespace ichortower.TaterToss
                 fa.doEmote(20);
                 fa.Sprite.StopAnimation();
                 fa.Position = SavedPosition;
-                // add friendship points. blech, maybe?
+                if (EarnedTossFriendship.Add(fa.myID.Value)) {
+                    float fpoints = 10f / Game1.getOnlineFarmers().Count;
+                    fa.friendshipTowardFarmer.Value = Math.Min(1000,
+                            fa.friendshipTowardFarmer.Value + (int)fpoints);
+                }
                 Game1.playSound("tinyWhip");
+                if (CurrentMutex.IsLockHeld()) {
+                    CurrentMutex.ReleaseLock();
+                }
+                CurrentMutex = null;
             };
 
             who.FarmerSprite.animateOnce(new FarmerSprite.AnimationFrame[1]{
@@ -201,4 +237,5 @@ namespace ichortower.TaterToss
             return modified;
         }
     }
+
 }

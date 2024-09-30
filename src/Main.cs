@@ -1,16 +1,7 @@
 using HarmonyLib;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
-using StardewValley.Characters;
-using StardewValley.Objects;
-using StardewValley.Pathfinding;
 using StardewModdingAPI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.Emit;
+using StardewModdingAPI.Events;
 
 namespace ichortower.TaterToss
 {
@@ -29,6 +20,12 @@ namespace ichortower.TaterToss
             Harmony harmony = new(ModId);
             Children.ApplyPatches(harmony);
             FarmAnimals.ApplyPatches(harmony);
+            helper.Events.GameLoop.DayStarted += OnDayStarted;
+        }
+
+        private void OnDayStarted(object sender, DayStartedEventArgs e)
+        {
+            FarmAnimals.EarnedTossFriendship.Clear();
         }
     }
 
