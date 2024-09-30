@@ -1,5 +1,7 @@
 {
   "gmcm.AnimalThrowKey.name": "AnimalThrowKey",
   "gmcm.AnimalThrowKey.tooltip": "Hold this key when interacting with a farm animal to toss it instead of opening the animal query menu.",
+  "gmcm.AnimalBlocklist.name": "AnimalBlocklist",
+  "gmcm.AnimalBlocklist.tooltip": "Specify animal types (e.g. 'White Cow'), comma-separated, to prevent being able to toss animals of those types.",
   "EOF": ""
 }

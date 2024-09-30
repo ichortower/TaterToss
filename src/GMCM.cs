@@ -28,6 +28,19 @@ namespace ichortower.TaterToss
                     Main.Config.AnimalThrowKey = value;
                 }
             );
+            gmcmApi.AddTextOption(
+                mod: Main.instance.ModManifest,
+                name: () => TR.Get("gmcm.AnimalBlocklist.name"),
+                tooltip: () => TR.Get("gmcm.AnimalBlocklist.tooltip"),
+                getValue: () => string.Join(", ", Main.Config.AnimalBlocklist),
+                setValue: (value) => {
+                    Main.Config.AnimalBlocklist.Clear();
+                    Main.Config.AnimalBlocklist.UnionWith(
+                            value.Split(",", StringSplitOptions.RemoveEmptyEntries |
+                                StringSplitOptions.TrimEntries)
+                    );
+                }
+            );
         }
     }
 
@@ -46,5 +59,6 @@ namespace GenericModConfigMenu
     {
         void Register(IManifest mod, Action reset, Action save, bool titleScreenOnly = false);
         void AddKeybindList(IManifest mod, Func<KeybindList> getValue, Action<KeybindList> setValue, Func<string> name, Func<string> tooltip = null, string fieldId = null);
+        void AddTextOption(IManifest mod, Func<string> getValue, Action<string> setValue, Func<string> name, Func<string> tooltip = null, string[] allowedValues = null, Func<string, string> formatAllowedValue = null, string fieldId = null);
     }
 }

@@ -78,8 +78,8 @@ namespace ichortower.TaterToss
             }
             if (Main.Config.AnimalBlocklist.Contains(__instance.type.Value)) {
                 Main.instance.Monitor.Log("Blocked toss of animal type" +
-                        $" {__instance.type.Value}, according to block list.",
-                        LogLevel.Info);
+                        $" '{__instance.type.Value}', according to block list.",
+                        LogLevel.Trace);
                 return;
             }
             if (__instance.IsActuallySwimming()) {
