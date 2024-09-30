@@ -76,6 +76,12 @@ namespace ichortower.TaterToss
             if (is_auto_pet || !WasAlreadyPet) {
                 return;
             }
+            if (Main.Config.AnimalBlocklist.Contains(__instance.type.Value)) {
+                Main.instance.Monitor.Log("Blocked toss of animal type" +
+                        $" {__instance.type.Value}, according to block list.",
+                        LogLevel.Info);
+                return;
+            }
             if (__instance.IsActuallySwimming()) {
                 return;
             }
@@ -89,6 +95,7 @@ namespace ichortower.TaterToss
             if (!Main.Config.AnimalThrowKey.IsDown()) {
                 return;
             }
+            // skip the AnimalQueryMenu by exiting it immediately
             Game1.exitActiveMenu();
             RequestToss(__instance, who);
         }
