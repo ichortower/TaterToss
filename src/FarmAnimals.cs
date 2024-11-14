@@ -76,7 +76,7 @@ namespace ichortower.TaterToss
             if (is_auto_pet || !WasAlreadyPet) {
                 return;
             }
-            if (Main.Config.AnimalBlocklist.Contains(__instance.type.Value)) {
+            if (Main.Config.Blocklist.Contains(__instance.type.Value)) {
                 Main.instance.Monitor.Log("Blocked toss of animal type" +
                         $" '{__instance.type.Value}', according to block list.",
                         LogLevel.Trace);
@@ -92,7 +92,7 @@ namespace ichortower.TaterToss
             if (who.ActiveObject?.QualifiedItemId == "(O)GoldenAnimalCracker") {
                 return;
             }
-            if (!Main.Config.AnimalThrowKey.IsDown()) {
+            if (!Main.Config.ThrowKey.IsDown()) {
                 return;
             }
             // skip the AnimalQueryMenu by exiting it immediately
@@ -168,15 +168,8 @@ namespace ichortower.TaterToss
                     new(2, 100),
                     new(3, 100),
             });
+            TossSync.SendToss(fa, who.currentLocation, throwVelocity);
             Game1.playSound(throwSound);
-            /*
-            string animalSound = fa.GetAnimalData()?.Sound;
-            if (animalSound != null) {
-                DelayedAction.functionAfterDelay(delegate {
-                    Game1.playSound(animalSound);
-                }, 220);
-            }
-            */
         }
 
         public static void FarmAnimal_updateWhenCurrentLocation_Postfix(

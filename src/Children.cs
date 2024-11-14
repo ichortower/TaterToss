@@ -112,10 +112,19 @@ namespace ichortower.TaterToss
             if (WasHoldingHat) {
                 return;
             }
-            // removed check to limit tossing to own children
-            //if (__instance.idOfParent.Value != who.UniqueMultiplayerID) {
-                //return;
-            //}
+            string childType = __instance.Age switch {
+                2 => "Crawler",
+                _ => "Toddler"
+            };
+            if (Main.Config.Blocklist.Contains(childType)) {
+                Main.instance.Monitor.Log("Blocked toss of child type" +
+                        $" '{childType}', according to block list.",
+                        LogLevel.Trace);
+                return;
+            }
+            if (Main.Config.UseKeyForChildren && !Main.Config.ThrowKey.IsDown()) {
+                return;
+            }
             // we are skipping Child.toss, so duplicate some of its guards
             if (__instance.IsInvisible || Game1.timeOfDay >= 1800) {
                 return;
@@ -134,10 +143,12 @@ namespace ichortower.TaterToss
             if (who == Game1.player) {
                 __instance.mutex.RequestLock(delegate {
                         __instance.performToss(who);
+                        TossSync.SendToss(__instance, l, __instance.yJumpVelocity);
                 });
             }
             else {
                 __instance.performToss(who);
+                TossSync.SendToss(__instance, l, __instance.yJumpVelocity);
             }
         }
 
