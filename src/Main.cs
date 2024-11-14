@@ -22,6 +22,7 @@ namespace ichortower.TaterToss
             FarmAnimals.ApplyPatches(harmony);
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             helper.Events.GameLoop.DayStarted += OnDayStarted;
+            helper.Events.Multiplayer.ModMessageReceived += TossSync.ReceiveToss;
         }
 
         private void OnGameLaunched(object sender, GameLaunchedEventArgs e)

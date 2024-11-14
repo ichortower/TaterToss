@@ -143,10 +143,12 @@ namespace ichortower.TaterToss
             if (who == Game1.player) {
                 __instance.mutex.RequestLock(delegate {
                         __instance.performToss(who);
+                        TossSync.SendToss(__instance, l, __instance.yJumpVelocity);
                 });
             }
             else {
                 __instance.performToss(who);
+                TossSync.SendToss(__instance, l, __instance.yJumpVelocity);
             }
         }
 

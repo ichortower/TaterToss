@@ -168,15 +168,8 @@ namespace ichortower.TaterToss
                     new(2, 100),
                     new(3, 100),
             });
+            TossSync.SendToss(fa, who.currentLocation, throwVelocity);
             Game1.playSound(throwSound);
-            /*
-            string animalSound = fa.GetAnimalData()?.Sound;
-            if (animalSound != null) {
-                DelayedAction.functionAfterDelay(delegate {
-                    Game1.playSound(animalSound);
-                }, 220);
-            }
-            */
         }
 
         public static void FarmAnimal_updateWhenCurrentLocation_Postfix(
