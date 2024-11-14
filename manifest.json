@@ -2,7 +2,7 @@
 	"Name": "Tater Toss - Throw Your Loved Ones",
 	"Author": "ichortower",
 	"Description": "Allows you to throw crawler- and toddler-aged children, as well as farm animals.",
-	"Version": "1.1.0",
+	"Version": "1.2.0",
 	"UniqueID": "ichortower.TaterToss",
 	"EntryDll": "TaterToss.dll",
 	"MinimumApiVersion": "4.0.0",
