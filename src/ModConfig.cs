@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 internal class ModConfig
 {
-    public KeybindList AnimalThrowKey = new(SButton.LeftShift);
-    public HashSet<string> AnimalBlocklist = new();
+    public KeybindList ThrowKey = new(SButton.LeftShift);
+    public bool UseKeyForChildren = false;
+    public HashSet<string> Blocklist = new();
 }

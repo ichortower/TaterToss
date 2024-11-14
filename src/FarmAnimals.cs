@@ -76,7 +76,7 @@ namespace ichortower.TaterToss
             if (is_auto_pet || !WasAlreadyPet) {
                 return;
             }
-            if (Main.Config.AnimalBlocklist.Contains(__instance.type.Value)) {
+            if (Main.Config.Blocklist.Contains(__instance.type.Value)) {
                 Main.instance.Monitor.Log("Blocked toss of animal type" +
                         $" '{__instance.type.Value}', according to block list.",
                         LogLevel.Trace);
@@ -92,7 +92,7 @@ namespace ichortower.TaterToss
             if (who.ActiveObject?.QualifiedItemId == "(O)GoldenAnimalCracker") {
                 return;
             }
-            if (!Main.Config.AnimalThrowKey.IsDown()) {
+            if (!Main.Config.ThrowKey.IsDown()) {
                 return;
             }
             // skip the AnimalQueryMenu by exiting it immediately
