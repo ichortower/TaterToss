@@ -92,7 +92,7 @@ internal sealed class Pets
                     LogLevel.Trace);
             return;
         }
-        if (true /*Main.Config.UseKeyForPets*/ && !Main.Config.ThrowKey.IsDown()) {
+        if (Main.Config.UseKeyForPets && !Main.Config.ThrowKey.IsDown()) {
             return;
         }
         if (Game1.timeOfDay >= 2000 || __instance.CurrentBehavior == "Sleep") {
@@ -108,7 +108,7 @@ internal sealed class Pets
     public static bool Pet_TryBehaviorChange_Prefix(ref bool __result,
             Pet __instance, List<PetBehaviorChanges> changes)
     {
-        if (LovedOne.BeingThrown.Contains(__instance as Character)) {
+        if (LovedOne.BeingTossed.Contains(__instance as Character)) {
             return false;
         }
         return true;

@@ -12,7 +12,7 @@ namespace ichortower.TaterToss;
 
 internal sealed class LovedOne
 {
-    internal static HashSet<Character> BeingThrown = new();
+    internal static HashSet<Character> BeingTossed = new();
     internal static HashSet<Character> EarnedTossFriendship = new();
     internal const int frameTime = 125;
 
@@ -74,9 +74,8 @@ internal sealed class LovedOne
         else {
             return;
         }
-        Main.instance.Monitor.Log($"Attempting to throw {love.Name}", LogLevel.Warn);
-        if (!BeingThrown.Add(love)) {
-            Main.instance.Monitor.Log("Could not throw loved one! oh no", LogLevel.Warn);
+        if (!BeingTossed.Add(love)) {
+            Main.instance.Monitor.Log($"{love.Name} is already being tossed", LogLevel.Info);
             return;
         }
 
@@ -111,7 +110,7 @@ internal sealed class LovedOne
             who.CanMove = true;
             who.forceCanMove();
             who.faceDirection(2);
-            BeingThrown.Remove(love);
+            BeingTossed.Remove(love);
             love.Sprite.StopAnimation();
             RestoreSave(love, save);
             love.drawOnTop = false;

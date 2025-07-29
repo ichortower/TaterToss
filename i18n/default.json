@@ -3,6 +3,8 @@
   "gmcm.ThrowKey.tooltip": "Hold this key when interacting with a farm animal to toss it instead of opening the animal query menu.",
   "gmcm.UseKeyForChildren.name": "UseKeyForChildren",
   "gmcm.UseKeyForChildren.tooltip": "Require use of the ThrowKey to throw children, instead of automatically proceeding.",
+  "gmcm.UseKeyForPets.name": "UseKeyForPets",
+  "gmcm.UseKeyForPets.tooltip": "Require use of the ThrowKey to throw pets, instead of automatically proceeding.",
   "gmcm.Blocklist.name": "Blocklist",
   "gmcm.Blocklist.tooltip": "Specify animal types (e.g. 'White Cow'), or child types ('Crawler' or 'Toddler'), comma-separated, to prevent being able to toss loved ones of those types.",
   "EOF": ""

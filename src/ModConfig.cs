@@ -6,5 +6,6 @@ internal class ModConfig
 {
     public KeybindList ThrowKey = new(SButton.LeftShift);
     public bool UseKeyForChildren = false;
+    public bool UseKeyForPets = false;
     public HashSet<string> Blocklist = new();
 }

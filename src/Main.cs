@@ -33,7 +33,7 @@ namespace ichortower.TaterToss
 
         private void OnDayStarted(object sender, DayStartedEventArgs e)
         {
-            LovedOne.BeingThrown.Clear();
+            LovedOne.BeingTossed.Clear();
             LovedOne.EarnedTossFriendship.Clear();
         }
     }

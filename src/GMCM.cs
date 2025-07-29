@@ -37,6 +37,15 @@ namespace ichortower.TaterToss
                     Main.Config.UseKeyForChildren = value;
                 }
             );
+            gmcmApi.AddBoolOption(
+                mod: Main.instance.ModManifest,
+                name: () => TR.Get("gmcm.UseKeyForPets.name"),
+                tooltip: () => TR.Get("gmcm.UseKeyForPets.tooltip"),
+                getValue: () => Main.Config.UseKeyForPets,
+                setValue: (value) => {
+                    Main.Config.UseKeyForPets = value;
+                }
+            );
             gmcmApi.AddTextOption(
                 mod: Main.instance.ModManifest,
                 name: () => TR.Get("gmcm.Blocklist.name"),
