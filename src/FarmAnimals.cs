@@ -20,8 +20,6 @@ namespace ichortower.TaterToss
         private static bool WasAlreadyPet = false;
         internal static NetMutex CurrentMutex = null;
 
-        public static HashSet<long> EarnedTossFriendship = new();
-
         /*
          * Feels yucky to use the global inventory mutex dict for this, but
          * it's probably better to do that than try to set it up myself and
@@ -103,73 +101,13 @@ namespace ichortower.TaterToss
         private static void RequestToss(FarmAnimal fa, Farmer who)
         {
             CurrentMutex = GuaranteeAnimalMutex(fa);
-            if (who == Game1.player) {
-                CurrentMutex.RequestLock(delegate {
-                    PerformAnimalToss(fa, who);
-                });
+            if (who != Game1.player) {
+                LovedOne.PerformToss(fa, who);
+                return;
             }
-            else {
-                PerformAnimalToss(fa, who);
-            }
-        }
-
-        private static void PerformAnimalToss(FarmAnimal fa, Farmer who)
-        {
-            who.forceTimePass = true;
-            who.faceDirection(2);
-            who.FarmerSprite.PauseForSingleAnimation = false;
-            Vector2 SavedPosition = fa.Position;
-            Vector2 pos = who.Position;
-            pos.X -= (fa.Sprite.SpriteWidth - who.Sprite.SpriteWidth) * 2;
-            pos.Y -= (who.Sprite.SpriteHeight * 4 + (fa.Sprite.SpriteHeight - who.Sprite.SpriteHeight) * 2);
-            fa.Position = pos;
-            float throwVelocity = 30f;
-            int freezeTime = 2500;
-            string throwSound = "crit";
-            if (Game1.random.NextDouble() >= 0.01 || who.stats?.Get("timesTossedBaby") <= 3) {
-                throwVelocity = Game1.random.Next(12, 19);
-                throwSound = "dwop";
-                freezeTime = 1500;
-            }
-            // delegate here for closure access to fa
-            AnimatedSprite.endOfAnimationBehavior FinishAnimalToss = delegate (Farmer who) {
-                who.forceTimePass = false;
-                who.CanMove = true;
-                who.forceCanMove();
-                who.faceDirection(2);
-                fa.drawOnTop = false;
-                fa.doEmote(20);
-                fa.Sprite.StopAnimation();
-                fa.Position = SavedPosition;
-                if (EarnedTossFriendship.Add(fa.myID.Value)) {
-                    float fpoints = 10f / Game1.getOnlineFarmers().Count;
-                    fa.friendshipTowardFarmer.Value = Math.Min(1000,
-                            fa.friendshipTowardFarmer.Value + (int)fpoints);
-                }
-                Game1.playSound("tinyWhip");
-                if (CurrentMutex.IsLockHeld()) {
-                    CurrentMutex.ReleaseLock();
-                }
-                CurrentMutex = null;
-            };
-
-            who.FarmerSprite.animateOnce(new FarmerSprite.AnimationFrame[1]{
-                new(57, freezeTime, secondaryArm: false, flip: false,
-                        FinishAnimalToss, behaviorAtEndOfFrame: true)
+            CurrentMutex.RequestLock(delegate {
+                LovedOne.PerformToss(fa, who);
             });
-            who.freezePause = freezeTime;
-            who.CanMove = false;
-            fa.yJumpVelocity = throwVelocity;
-            fa.yJumpOffset = -1;
-            fa.drawOnTop = true;
-            fa.Sprite.setCurrentAnimation(new List<FarmerSprite.AnimationFrame> {
-                    new(0, 100),
-                    new(1, 100),
-                    new(2, 100),
-                    new(3, 100),
-            });
-            TossSync.SendToss(fa, who.currentLocation, throwVelocity);
-            Game1.playSound(throwSound);
         }
 
         public static void FarmAnimal_updateWhenCurrentLocation_Postfix(

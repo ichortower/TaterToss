@@ -33,7 +33,8 @@ namespace ichortower.TaterToss
 
         private void OnDayStarted(object sender, DayStartedEventArgs e)
         {
-            FarmAnimals.EarnedTossFriendship.Clear();
+            LovedOne.BeingThrown.Clear();
+            LovedOne.EarnedTossFriendship.Clear();
         }
     }
 
