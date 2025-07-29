@@ -30,6 +30,10 @@ internal sealed class Pets
         MethodInfo Pet_drawHat = typeof(Pet).GetMethod(
                 nameof(Pet.drawHat),
                 BindingFlags.Public | BindingFlags.Instance);
+        MethodInfo Pet_update = typeof(Pet).GetMethod(
+                nameof(Pet.update),
+                BindingFlags.Public | BindingFlags.Instance,
+                null, new []{typeof(GameTime), typeof(GameLocation)}, null);
 
         harmony.Patch(Pet_checkAction,
                 prefix: new HarmonyMethod(typeof(Pets),
@@ -45,6 +49,9 @@ internal sealed class Pets
         harmony.Patch(Pet_drawHat,
                 transpiler: new HarmonyMethod(typeof(Pets),
                     "Pet_drawHat_Transpiler"));
+        harmony.Patch(Pet_update,
+                postfix: new HarmonyMethod(typeof(Pets),
+                    "Pet_update_Postfix"));
     }
 
     /*
@@ -174,6 +181,18 @@ internal sealed class Pets
         .AddLabels(new []{skipSpot});
 
         return cm.InstructionEnumeration();
+    }
+
+    public static void Pet_update_Postfix(Pet __instance,
+            GameTime time, GameLocation location)
+    {
+        if (__instance.yJumpVelocity > 18f) {
+            Utility.addSmokePuff(location,
+                    __instance.Position + new Vector2(32f, __instance.yJumpOffset),
+                    0,
+                    __instance.yJumpVelocity / 8f,
+                    0.01f, 0.75f, 0.01f);
+        }
     }
 
     private static void RequestToss(Pet p, Farmer who)
