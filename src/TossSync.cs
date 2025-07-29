@@ -15,10 +15,13 @@ namespace ichortower.TaterToss
             msg.LocationName = location.NameOrUniqueName;
             msg.Velocity = velocity;
             if (who is Child) {
-                msg.Type = LovedOne.Child;
+                msg.Type = LovedOneType.Child;
             }
             else if (who is FarmAnimal) {
-                msg.Type = LovedOne.FarmAnimal;
+                msg.Type = LovedOneType.FarmAnimal;
+            }
+            else if (who is Pet) {
+                msg.Type = LovedOneType.Pet;
             }
             else {
                 Main.instance.Monitor.Log("Blocked sending toss of " +
@@ -43,7 +46,7 @@ namespace ichortower.TaterToss
             if (loc is null) {
                 return;
             }
-            if (msg.Type == LovedOne.Child) {
+            if (msg.Type == LovedOneType.Child) {
                 foreach (NPC who in loc.characters) {
                     if (who is Child ch && ch.Name == msg.UniqueName) {
                         ch.yJumpVelocity = msg.Velocity;
@@ -51,11 +54,19 @@ namespace ichortower.TaterToss
                     }
                 }
             }
-            else if (msg.Type == LovedOne.FarmAnimal) {
+            else if (msg.Type == LovedOneType.FarmAnimal) {
                 foreach (FarmAnimal who in loc.animals.Values) {
                     if (who.Name == msg.UniqueName) {
                         who.yJumpVelocity = msg.Velocity;
                         who.yJumpOffset = -1;
+                    }
+                }
+            }
+            else if (msg.Type == LovedOneType.Pet) {
+                foreach (Pet who in loc.characters) {
+                    if (who is Pet p && p.Name == msg.UniqueName) {
+                        p.yJumpVelocity = msg.Velocity;
+                        p.yJumpOffset = -1;
                     }
                 }
             }
@@ -64,12 +75,12 @@ namespace ichortower.TaterToss
 
     internal struct TossStruct
     {
-        public LovedOne Type;
+        public LovedOneType Type;
         public string UniqueName;
         public string LocationName;
         public float Velocity;
 
-        public TossStruct(LovedOne type, string name, string locationName, float velocity)
+        public TossStruct(LovedOneType type, string name, string locationName, float velocity)
         {
             Type = type;
             UniqueName = name;
@@ -78,8 +89,9 @@ namespace ichortower.TaterToss
         }
     }
 
-    internal enum LovedOne {
+    internal enum LovedOneType {
         Child,
-        FarmAnimal
+        FarmAnimal,
+        Pet,
     }
 }

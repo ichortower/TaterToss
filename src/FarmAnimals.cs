@@ -18,7 +18,7 @@ namespace ichortower.TaterToss
     internal sealed class FarmAnimals
     {
         private static bool WasAlreadyPet = false;
-        private static NetMutex CurrentMutex = null;
+        internal static NetMutex CurrentMutex = null;
 
         public static HashSet<long> EarnedTossFriendship = new();
 
