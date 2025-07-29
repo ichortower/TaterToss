@@ -150,6 +150,7 @@ namespace ichortower.TaterToss
                 __instance.performToss(who);
                 TossSync.SendToss(__instance, l, __instance.yJumpVelocity);
             }
+            __result = true;
         }
 
         private static int GetChildFacingDirection(Child c)

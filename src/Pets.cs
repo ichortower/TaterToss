@@ -99,6 +99,7 @@ internal sealed class Pets
             return;
         }
         RequestToss(__instance, who);
+        __result = true;
     }
 
     /*
