@@ -86,16 +86,28 @@ internal sealed class Pets
         if (__instance.IsInvisible) {
             return;
         }
-        if (Main.Config.Blocklist.Contains(__instance.petType.Value)) {
-            Main.instance.Monitor.Log("Blocked toss of pet type" +
-                    $" '{__instance.petType.Value}', according to block list.",
-                    LogLevel.Trace);
-            return;
-        }
         if (Main.Config.UseKeyForPets && !Main.Config.ThrowKey.IsDown()) {
             return;
         }
         if (Game1.timeOfDay >= 2000 || __instance.CurrentBehavior == "Sleep") {
+            return;
+        }
+        if (Main.Config.Blocklist.Contains(__instance.displayName)) {
+            Main.instance.Monitor.Log("Blocked toss of pet named" +
+                    $" '{__instance.displayName}', according to block list.",
+                    LogLevel.Trace);
+            return;
+        }
+        if (Main.Config.Blocklist.Contains(__instance.whichBreed.Value)) {
+            Main.instance.Monitor.Log("Blocked toss of pet breed" +
+                    $" '{__instance.whichBreed.Value}', according to block list.",
+                    LogLevel.Trace);
+            return;
+        }
+        if (Main.Config.Blocklist.Contains(__instance.petType.Value)) {
+            Main.instance.Monitor.Log("Blocked toss of pet type" +
+                    $" '{__instance.petType.Value}', according to block list.",
+                    LogLevel.Trace);
             return;
         }
         LovedOne.PerformToss(__instance, who, __instance.mutex);

@@ -53,6 +53,12 @@ internal sealed class Spouses
                     LogLevel.Trace);
             return;
         }
+        if (Main.Config.Blocklist.Contains(__instance.displayName)) {
+            Main.instance.Monitor.Log("Blocked toss of NPC named" +
+                    $" '{__instance.displayName}', according to block list.",
+                    LogLevel.Trace);
+            return;
+        }
         LovedOne.PerformToss(__instance, who, GuaranteeNPCMutex(__instance));
         __result = true;
     }

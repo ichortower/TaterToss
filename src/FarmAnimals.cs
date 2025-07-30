@@ -74,12 +74,6 @@ namespace ichortower.TaterToss
             if (is_auto_pet || !WasAlreadyPet) {
                 return;
             }
-            if (Main.Config.Blocklist.Contains(__instance.type.Value)) {
-                Main.instance.Monitor.Log("Blocked toss of animal type" +
-                        $" '{__instance.type.Value}', according to block list.",
-                        LogLevel.Trace);
-                return;
-            }
             if (__instance.IsActuallySwimming()) {
                 return;
             }
@@ -93,9 +87,24 @@ namespace ichortower.TaterToss
             if (!Main.Config.ThrowKey.IsDown()) {
                 return;
             }
+            bool blocked = false;
+            if (Main.Config.Blocklist.Contains(__instance.displayName)) {
+                Main.instance.Monitor.Log("Blocked toss of animal named" +
+                        $" '{__instance.displayName}', according to block list.",
+                        LogLevel.Trace);
+                blocked = true;
+            }
+            if (Main.Config.Blocklist.Contains(__instance.type.Value)) {
+                Main.instance.Monitor.Log("Blocked toss of animal type" +
+                        $" '{__instance.type.Value}', according to block list.",
+                        LogLevel.Trace);
+                blocked = true;
+            }
             // skip the AnimalQueryMenu by exiting it immediately
             Game1.exitActiveMenu();
-            LovedOne.PerformToss(__instance, who, GuaranteeAnimalMutex(__instance));
+            if (!blocked) {
+                LovedOne.PerformToss(__instance, who, GuaranteeAnimalMutex(__instance));
+            }
         }
 
         public static void FarmAnimal_updateWhenCurrentLocation_Postfix(

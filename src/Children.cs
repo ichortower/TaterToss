@@ -116,17 +116,23 @@ namespace ichortower.TaterToss
                 2 => "Crawler",
                 _ => "Toddler"
             };
-            if (Main.Config.Blocklist.Contains(childType)) {
-                Main.instance.Monitor.Log("Blocked toss of child type" +
-                        $" '{childType}', according to block list.",
-                        LogLevel.Trace);
-                return;
-            }
             if (Main.Config.UseKeyForChildren && !Main.Config.ThrowKey.IsDown()) {
                 return;
             }
             // we are skipping Child.toss, so duplicate some of its guards
             if (__instance.IsInvisible || Game1.timeOfDay >= 1800) {
+                return;
+            }
+            if (Main.Config.Blocklist.Contains(__instance.displayName)) {
+                Main.instance.Monitor.Log("Blocked toss of child named" +
+                        $" '{__instance.displayName}', according to block list.",
+                        LogLevel.Trace);
+                return;
+            }
+            if (Main.Config.Blocklist.Contains(childType)) {
+                Main.instance.Monitor.Log("Blocked toss of child type" +
+                        $" '{childType}', according to block list.",
+                        LogLevel.Trace);
                 return;
             }
             SavedChildPosition = __instance.Position;
