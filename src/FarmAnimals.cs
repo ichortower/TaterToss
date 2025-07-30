@@ -95,19 +95,7 @@ namespace ichortower.TaterToss
             }
             // skip the AnimalQueryMenu by exiting it immediately
             Game1.exitActiveMenu();
-            RequestToss(__instance, who);
-        }
-
-        private static void RequestToss(FarmAnimal fa, Farmer who)
-        {
-            CurrentMutex = GuaranteeAnimalMutex(fa);
-            if (who != Game1.player) {
-                LovedOne.PerformToss(fa, who);
-                return;
-            }
-            CurrentMutex.RequestLock(delegate {
-                LovedOne.PerformToss(fa, who);
-            });
+            LovedOne.PerformToss(__instance, who, GuaranteeAnimalMutex(__instance));
         }
 
         public static void FarmAnimal_updateWhenCurrentLocation_Postfix(

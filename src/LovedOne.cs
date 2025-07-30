@@ -42,7 +42,7 @@ internal sealed class LovedOne
         }
     }
 
-    internal static void TryGiveFriendship(Character love)
+    internal static void TryGiveFriendship(Character love, Farmer who)
     {
         if (!EarnedTossFriendship.Add(love)) {
             return;
@@ -56,24 +56,30 @@ internal sealed class LovedOne
             fa.friendshipTowardFarmer.Value = Math.Min(1000,
                     fa.friendshipTowardFarmer.Value + (int)fpoints);
         }
+        else if (love is NPC n) {
+            who.changeFriendship(10, n);
+        }
     }
 
     /*
      * An implementation of toss for characters who don't already have one
      * (i.e. everyone except Child).
      */
-    internal static void PerformToss(Character love, Farmer who)
+    internal static void PerformToss(Character love, Farmer who, NetMutex mutex)
     {
-        NetMutex mutex;
-        if (love is FarmAnimal fa) {
-            mutex = FarmAnimals.CurrentMutex;
-        }
-        else if (love is Pet p) {
-            mutex = p.mutex;
+        Action call = delegate {
+            ReallyPerformToss(love, who, mutex);
+        };
+        if (who == Game1.player) {
+            mutex.RequestLock(call);
         }
         else {
-            return;
+            call();
         }
+    }
+
+    internal static void ReallyPerformToss(Character love, Farmer who, NetMutex mutex)
+    {
         if (!BeingTossed.Add(love)) {
             Main.instance.Monitor.Log($"{love.Name} is already being tossed", LogLevel.Info);
             return;
@@ -115,7 +121,7 @@ internal sealed class LovedOne
             RestoreSave(love, save);
             love.drawOnTop = false;
             love.doEmote(20);
-            TryGiveFriendship(love);
+            TryGiveFriendship(love, who);
             Game1.playSound("tinyWhip");
             if (mutex.IsLockHeld()) {
                 mutex.ReleaseLock();

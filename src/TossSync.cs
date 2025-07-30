@@ -23,6 +23,9 @@ namespace ichortower.TaterToss
             else if (who is Pet) {
                 msg.Type = LovedOneType.Pet;
             }
+            else if (who is NPC) {
+                msg.Type = LovedOneType.NPC;
+            }
             else {
                 Main.instance.Monitor.Log("Blocked sending toss of " +
                         $"unsupported Character type {who.GetType().Name}",
@@ -70,6 +73,14 @@ namespace ichortower.TaterToss
                     }
                 }
             }
+            else if (msg.Type == LovedOneType.NPC) {
+                foreach (NPC who in loc.characters) {
+                    if (who is NPC n && n.Name == msg.UniqueName) {
+                        n.yJumpVelocity = msg.Velocity;
+                        n.yJumpOffset = -1;
+                    }
+                }
+            }
         }
     }
 
@@ -93,5 +104,6 @@ namespace ichortower.TaterToss
         Child,
         FarmAnimal,
         Pet,
+        NPC,
     }
 }

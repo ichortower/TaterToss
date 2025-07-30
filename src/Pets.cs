@@ -98,7 +98,7 @@ internal sealed class Pets
         if (Game1.timeOfDay >= 2000 || __instance.CurrentBehavior == "Sleep") {
             return;
         }
-        RequestToss(__instance, who);
+        LovedOne.PerformToss(__instance, who, __instance.mutex);
         __result = true;
     }
 
@@ -194,17 +194,6 @@ internal sealed class Pets
                     __instance.yJumpVelocity / 8f,
                     0.01f, 0.75f, 0.01f);
         }
-    }
-
-    private static void RequestToss(Pet p, Farmer who)
-    {
-        if (who != Game1.player) {
-            LovedOne.PerformToss(p, who);
-            return;
-        }
-        p.mutex.RequestLock(delegate {
-            LovedOne.PerformToss(p, who);
-        });
     }
 }
 
