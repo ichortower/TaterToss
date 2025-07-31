@@ -38,6 +38,9 @@ internal sealed class Spouses
         if (__instance.IsInvisible) {
             return;
         }
+        if (__instance.isSleeping.Value) {
+            return;
+        }
         if (!who.friendshipData.TryGetValue(__instance.Name, out Friendship fr)) {
             return;
         }

@@ -89,7 +89,7 @@ internal sealed class Pets
         if (Main.Config.UseKeyForPets && !Main.Config.ThrowKey.IsDown()) {
             return;
         }
-        if (Game1.timeOfDay >= 2000 || __instance.CurrentBehavior == "Sleep") {
+        if (__instance.CurrentBehavior == "Sleep") {
             return;
         }
         if (Main.Config.Blocklist.Contains(__instance.displayName)) {

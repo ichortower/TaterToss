@@ -37,7 +37,9 @@ internal sealed class LovedOne
         if (love is Pet p) {
             p.CurrentBehavior = save.PetBehavior;
         }
-        if (save.Controller != null) {
+        // some loved ones (NPC spouses, in particular) may have gotten a new
+        // controller during a toss. if they have, just leave it.
+        if (save.Controller is not null && love.controller is null) {
             love.controller = save.Controller;
         }
     }
