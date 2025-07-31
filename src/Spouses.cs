@@ -33,7 +33,10 @@ internal sealed class Spouses
             NPC __instance, Farmer who, GameLocation l)
     {
         if (__result) {
-            return;
+            int kissFrame = __instance.GetData()?.KissSpriteIndex ?? 28;
+            if (__instance.Sprite.CurrentFrame != kissFrame) {
+                return;
+            }
         }
         if (__instance.IsInvisible) {
             return;
