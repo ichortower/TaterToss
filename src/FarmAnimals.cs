@@ -115,8 +115,11 @@ namespace ichortower.TaterToss
                 __instance.update(time, location, __instance.myID.Value, move:false);
             }
             if (__instance.yJumpVelocity > 18f) {
+                // add half of spritewidth at 4x, then subtract half of the
+                // puff (10px wide) at 4x
+                float x = (float)__instance.Sprite.SpriteWidth * 2f - 5*4;
                 Utility.addSmokePuff(location,
-                        __instance.Position + new Vector2(32f, __instance.yJumpOffset),
+                        __instance.Position + new Vector2(x, __instance.yJumpOffset),
                         0,
                         __instance.yJumpVelocity / 8f,
                         0.01f, 0.75f, 0.01f);
