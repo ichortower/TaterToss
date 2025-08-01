@@ -87,23 +87,32 @@ internal sealed class LovedOne
             return;
         }
 
+        int yOffset = 0;
         who.forceTimePass = true;
         who.faceDirection(2);
         who.FarmerSprite.PauseForSingleAnimation = false;
         SavedState save = GetSave(love);
         if (love is NPC n) {
             n.IsWalkingInSquare = false;
+            yOffset = 20;
         }
         if (love is Pet p2) {
             p2.CurrentBehavior = null;
+            yOffset = 20;
+        }
+        if (love is FarmAnimal) {
+            yOffset = -8;
         }
         love.controller = null;
         love.Halt();
         love.FacingDirection = -1;
         Vector2 pos = who.Position;
         pos.X -= (love.Sprite.SpriteWidth - who.Sprite.SpriteWidth) * 2;
-        pos.Y -= (who.Sprite.SpriteHeight * 4 + (love.Sprite.SpriteHeight - who.Sprite.SpriteHeight) * 2);
+        pos.Y -= (who.Sprite.SpriteHeight * 4 +
+                (love.Sprite.SpriteHeight - who.Sprite.SpriteHeight) * 2);
+        pos.Y += yOffset;
         love.Position = pos;
+
         float throwVelocity = 30f;
         int freezeTime = 2500;
         string throwSound = "crit";
