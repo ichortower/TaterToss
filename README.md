@@ -64,9 +64,10 @@ Tater Toss uses the following config values:
 
 - `ThrowKey`: (default *LeftShift*) which key to hold down in order to toss
   loved ones who require it. For farm animals, this bypasses the animal menu
-  (renaming, selling, etc.); for spouses, this bypasses kissing. Pets and
-  children in vanilla do not have an always-available interaction that requires
-  bypassing, but you can choose to require the key if you wish.
+  (renaming, selling, etc.); for spouses, this bypasses kissing (in truth,
+  both work by instantly aborting the action). Pets and children in vanilla
+  do not have an always-available interaction that requires bypassing, but
+  you can choose to require the key if you wish.
 - `UseKeyForChildren`: (default false) if set to true, the ThrowKey will also
   be required in order to throw children. By default (false), no modifier key
   is needed.
