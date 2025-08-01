@@ -18,9 +18,7 @@ namespace ichortower.TaterToss
     internal sealed class FarmAnimals
     {
         private static bool WasAlreadyPet = false;
-        private static NetMutex CurrentMutex = null;
-
-        public static HashSet<long> EarnedTossFriendship = new();
+        internal static NetMutex CurrentMutex = null;
 
         /*
          * Feels yucky to use the global inventory mutex dict for this, but
@@ -76,12 +74,6 @@ namespace ichortower.TaterToss
             if (is_auto_pet || !WasAlreadyPet) {
                 return;
             }
-            if (Main.Config.Blocklist.Contains(__instance.type.Value)) {
-                Main.instance.Monitor.Log("Blocked toss of animal type" +
-                        $" '{__instance.type.Value}', according to block list.",
-                        LogLevel.Trace);
-                return;
-            }
             if (__instance.IsActuallySwimming()) {
                 return;
             }
@@ -95,81 +87,24 @@ namespace ichortower.TaterToss
             if (!Main.Config.ThrowKey.IsDown()) {
                 return;
             }
+            bool blocked = false;
+            if (Main.Config.Blocklist.Contains(__instance.displayName)) {
+                Main.instance.Monitor.Log("Blocked toss of animal named" +
+                        $" '{__instance.displayName}', according to block list.",
+                        LogLevel.Trace);
+                blocked = true;
+            }
+            if (Main.Config.Blocklist.Contains(__instance.type.Value)) {
+                Main.instance.Monitor.Log("Blocked toss of animal type" +
+                        $" '{__instance.type.Value}', according to block list.",
+                        LogLevel.Trace);
+                blocked = true;
+            }
             // skip the AnimalQueryMenu by exiting it immediately
             Game1.exitActiveMenu();
-            RequestToss(__instance, who);
-        }
-
-        private static void RequestToss(FarmAnimal fa, Farmer who)
-        {
-            CurrentMutex = GuaranteeAnimalMutex(fa);
-            if (who == Game1.player) {
-                CurrentMutex.RequestLock(delegate {
-                    PerformAnimalToss(fa, who);
-                });
+            if (!blocked) {
+                LovedOne.PerformToss(__instance, who, GuaranteeAnimalMutex(__instance));
             }
-            else {
-                PerformAnimalToss(fa, who);
-            }
-        }
-
-        private static void PerformAnimalToss(FarmAnimal fa, Farmer who)
-        {
-            who.forceTimePass = true;
-            who.faceDirection(2);
-            who.FarmerSprite.PauseForSingleAnimation = false;
-            Vector2 SavedPosition = fa.Position;
-            Vector2 pos = who.Position;
-            pos.X -= (fa.Sprite.SpriteWidth - who.Sprite.SpriteWidth) * 2;
-            pos.Y -= (who.Sprite.SpriteHeight * 4 + (fa.Sprite.SpriteHeight - who.Sprite.SpriteHeight) * 2);
-            fa.Position = pos;
-            float throwVelocity = 30f;
-            int freezeTime = 2500;
-            string throwSound = "crit";
-            if (Game1.random.NextDouble() >= 0.01 || who.stats?.Get("timesTossedBaby") <= 3) {
-                throwVelocity = Game1.random.Next(12, 19);
-                throwSound = "dwop";
-                freezeTime = 1500;
-            }
-            // delegate here for closure access to fa
-            AnimatedSprite.endOfAnimationBehavior FinishAnimalToss = delegate (Farmer who) {
-                who.forceTimePass = false;
-                who.CanMove = true;
-                who.forceCanMove();
-                who.faceDirection(2);
-                fa.drawOnTop = false;
-                fa.doEmote(20);
-                fa.Sprite.StopAnimation();
-                fa.Position = SavedPosition;
-                if (EarnedTossFriendship.Add(fa.myID.Value)) {
-                    float fpoints = 10f / Game1.getOnlineFarmers().Count;
-                    fa.friendshipTowardFarmer.Value = Math.Min(1000,
-                            fa.friendshipTowardFarmer.Value + (int)fpoints);
-                }
-                Game1.playSound("tinyWhip");
-                if (CurrentMutex.IsLockHeld()) {
-                    CurrentMutex.ReleaseLock();
-                }
-                CurrentMutex = null;
-            };
-
-            who.FarmerSprite.animateOnce(new FarmerSprite.AnimationFrame[1]{
-                new(57, freezeTime, secondaryArm: false, flip: false,
-                        FinishAnimalToss, behaviorAtEndOfFrame: true)
-            });
-            who.freezePause = freezeTime;
-            who.CanMove = false;
-            fa.yJumpVelocity = throwVelocity;
-            fa.yJumpOffset = -1;
-            fa.drawOnTop = true;
-            fa.Sprite.setCurrentAnimation(new List<FarmerSprite.AnimationFrame> {
-                    new(0, 100),
-                    new(1, 100),
-                    new(2, 100),
-                    new(3, 100),
-            });
-            TossSync.SendToss(fa, who.currentLocation, throwVelocity);
-            Game1.playSound(throwSound);
         }
 
         public static void FarmAnimal_updateWhenCurrentLocation_Postfix(
@@ -180,8 +115,11 @@ namespace ichortower.TaterToss
                 __instance.update(time, location, __instance.myID.Value, move:false);
             }
             if (__instance.yJumpVelocity > 18f) {
+                // add half of spritewidth at 4x, then subtract half of the
+                // puff (10px wide) at 4x
+                float x = (float)__instance.Sprite.SpriteWidth * 2f - 5*4;
                 Utility.addSmokePuff(location,
-                        __instance.Position + new Vector2(32f, __instance.yJumpOffset),
+                        __instance.Position + new Vector2(x, __instance.yJumpOffset),
                         0,
                         __instance.yJumpVelocity / 8f,
                         0.01f, 0.75f, 0.01f);
@@ -189,52 +127,72 @@ namespace ichortower.TaterToss
         }
 
         /*
-         * Patch FarmAnimal.draw so it honors drawOnTop with a higher
-         * layer_depth.
+         * Two changes in this transpiler:
+         * 1. avoid adding yJumpOffset to the draw offset vector a second time
+         *    if the animal's hopOffset vector is zero.
+         * 2. honor drawOnTop with a high layer_depth, like some other classes.
+         *
+         * These actually target immediately adjacent sections of the CIL, so
+         * even though I have them visually separated, the patches are pretty
+         * intertwined. Hopefully easier to back out just one of them if needed.
          */
         public static IEnumerable<CodeInstruction> FarmAnimal_draw_Transpiler(
                 IEnumerable<CodeInstruction> instructions,
                 ILGenerator generator,
                 MethodBase original)
         {
-            Label defaultStart = generator.DefineLabel();
-            Label storeLocal = generator.DefineLabel();
+            CodeMatcher cm = new(instructions);
+
+            // the yJumpOffset patch
+            Label offsetSkip = generator.DefineLabel();
+            FieldInfo hopOffsetField = typeof(FarmAnimal).GetField(
+                    nameof(FarmAnimal.hopOffset),
+                    BindingFlags.Public | BindingFlags.Instance);
+            MethodInfo Vector2GetZero = typeof(Vector2).GetProperty(
+                    nameof(Vector2.Zero),
+                    BindingFlags.Public | BindingFlags.Static).GetGetMethod();
+            MethodInfo Vector2OpEquality = typeof(Vector2).GetMethod(
+                    "op_Equality",
+                    BindingFlags.Public | BindingFlags.Static);
+            // the callvirt is just to disambiguate, hence the Advance(1) after
+            cm.MatchStartForward(
+                    new CodeMatch(OpCodes.Callvirt),
+                    new(OpCodes.Ldloca_S),
+                    new(OpCodes.Ldflda))
+            .Advance(1)
+            .ExtractLabels(out IEnumerable<Label> existing)
+            .InsertAndAdvanceWithLabels(existing,
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new(OpCodes.Ldfld, hopOffsetField),
+                    new(OpCodes.Call, Vector2GetZero),
+                    new(OpCodes.Call, Vector2OpEquality),
+                    new(OpCodes.Brtrue_S, offsetSkip))
+            .MatchStartForward(
+                    new CodeMatch(OpCodes.Ldloca_S),
+                    new(OpCodes.Call),
+                    new(OpCodes.Ldfld))
+            .AddLabels(new []{offsetSkip});
+
+            // the drawOnTop patch
+            Label drawStart = generator.DefineLabel();
+            Label drawSkip = generator.DefineLabel();
             FieldInfo drawOnTopField = typeof(FarmAnimal).GetField(
                     nameof(FarmAnimal.drawOnTop),
                     BindingFlags.Public | BindingFlags.Instance);
-            List<CodeInstruction> injection = new() {
-                new(OpCodes.Ldarg_0),
-                new(OpCodes.Ldfld, drawOnTopField),
-                new(OpCodes.Brfalse_S, defaultStart),
-                new(OpCodes.Ldc_R4, 0.991f),
-                new(OpCodes.Br_S, storeLocal),
-            };
-            List<CodeInstruction> codes = instructions.ToList();
-            List<CodeInstruction> modified = new();
-            int foundIndex = -1;
-            for (int i = 0; i < codes.Count; ++i) {
-                var instr = codes[i];
-                if (foundIndex >= 0 || i+2 >= codes.Count ||
-                        codes[i].opcode != OpCodes.Ldloca_S ||
-                        codes[i+1].opcode != OpCodes.Call ||
-                        codes[i+2].opcode != OpCodes.Ldfld) {
-                    modified.Add(instr);
-                    continue;
-                }
-                modified.AddRange(injection);
-                instr.labels.Add(defaultStart);
-                modified.Add(instr);
-                foundIndex = i;
-            }
-            if (foundIndex >= 0) {
-                for (int i = foundIndex+injection.Count+1; i < modified.Count; ++i) {
-                    if (modified[i].opcode == OpCodes.Stloc_S) {
-                        modified[i].labels.Add(storeLocal);
-                        break;
-                    }
-                }
-            }
-            return modified;
+            // already in the correct spot
+            cm.ExtractLabels(out IEnumerable<Label> bucket)
+            .AddLabels(new []{drawStart})
+            .InsertAndAdvanceWithLabels(bucket,
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new(OpCodes.Ldfld, drawOnTopField),
+                    new(OpCodes.Brfalse_S, drawStart),
+                    new(OpCodes.Ldc_R4, 0.991f),
+                    new(OpCodes.Br_S, drawSkip))
+            .MatchStartForward(
+                    new CodeMatch(OpCodes.Stloc_S))
+            .AddLabels(new []{drawSkip});
+
+            return cm.InstructionEnumeration();
         }
     }
 

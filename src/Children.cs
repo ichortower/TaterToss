@@ -24,7 +24,6 @@ namespace ichortower.TaterToss
 
         private static string TossingChildName = "";
         private static int SkippedUpdates = 0;
-        private static bool WasHoldingHat = false;
 
         public static void ApplyPatches(Harmony harmony)
         {
@@ -82,15 +81,15 @@ namespace ichortower.TaterToss
          * child. We use this to be able to abort the toss.
          */
         public static void Child_checkAction_Prefix(Child __instance,
-                Farmer who, GameLocation l)
+                Farmer who, GameLocation l, ref bool __state)
         {
             if (__instance.Age >= 3 && who.Items.Count > who.CurrentToolIndex &&
                     who.Items[who.CurrentToolIndex] != null &&
                     who.Items[who.CurrentToolIndex] is Hat) {
-                WasHoldingHat = true;
+                __state = true;
             }
             else {
-                WasHoldingHat = false;
+                __state = false;
             }
         }
 
@@ -100,7 +99,7 @@ namespace ichortower.TaterToss
          * action instead.
          */
         public static void Child_checkAction_Postfix(ref bool __result,
-                Child __instance, Farmer who, GameLocation l)
+                Child __instance, Farmer who, GameLocation l, ref bool __state)
         {
             // original returns true when you interact/"talk" to the kid
             if (__result) {
@@ -109,24 +108,33 @@ namespace ichortower.TaterToss
             if (__instance.Age < 2) {
                 return;
             }
-            if (WasHoldingHat) {
+            if (__state) { // was holding hat
+                return;
+            }
+            if (__instance.isSleeping.Value) {
                 return;
             }
             string childType = __instance.Age switch {
                 2 => "Crawler",
                 _ => "Toddler"
             };
-            if (Main.Config.Blocklist.Contains(childType)) {
-                Main.instance.Monitor.Log("Blocked toss of child type" +
-                        $" '{childType}', according to block list.",
-                        LogLevel.Trace);
-                return;
-            }
             if (Main.Config.UseKeyForChildren && !Main.Config.ThrowKey.IsDown()) {
                 return;
             }
             // we are skipping Child.toss, so duplicate some of its guards
             if (__instance.IsInvisible || Game1.timeOfDay >= 1800) {
+                return;
+            }
+            if (Main.Config.Blocklist.Contains(__instance.displayName)) {
+                Main.instance.Monitor.Log("Blocked toss of child named" +
+                        $" '{__instance.displayName}', according to block list.",
+                        LogLevel.Trace);
+                return;
+            }
+            if (Main.Config.Blocklist.Contains(childType)) {
+                Main.instance.Monitor.Log("Blocked toss of child type" +
+                        $" '{childType}', according to block list.",
+                        LogLevel.Trace);
                 return;
             }
             SavedChildPosition = __instance.Position;
@@ -150,6 +158,7 @@ namespace ichortower.TaterToss
                 __instance.performToss(who);
                 TossSync.SendToss(__instance, l, __instance.yJumpVelocity);
             }
+            __result = true;
         }
 
         private static int GetChildFacingDirection(Child c)

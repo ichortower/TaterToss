@@ -20,6 +20,8 @@ namespace ichortower.TaterToss
             Harmony harmony = new(ModId);
             Children.ApplyPatches(harmony);
             FarmAnimals.ApplyPatches(harmony);
+            Pets.ApplyPatches(harmony);
+            Spouses.ApplyPatches(harmony);
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             helper.Events.GameLoop.DayStarted += OnDayStarted;
             helper.Events.Multiplayer.ModMessageReceived += TossSync.ReceiveToss;
@@ -32,7 +34,8 @@ namespace ichortower.TaterToss
 
         private void OnDayStarted(object sender, DayStartedEventArgs e)
         {
-            FarmAnimals.EarnedTossFriendship.Clear();
+            LovedOne.BeingTossed.Clear();
+            LovedOne.EarnedTossFriendship.Clear();
         }
     }
 
