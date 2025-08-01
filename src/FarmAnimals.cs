@@ -127,52 +127,72 @@ namespace ichortower.TaterToss
         }
 
         /*
-         * Patch FarmAnimal.draw so it honors drawOnTop with a higher
-         * layer_depth.
+         * Two changes in this transpiler:
+         * 1. avoid adding yJumpOffset to the draw offset vector a second time
+         *    if the animal's hopOffset vector is zero.
+         * 2. honor drawOnTop with a high layer_depth, like some other classes.
+         *
+         * These actually target immediately adjacent sections of the CIL, so
+         * even though I have them visually separated, the patches are pretty
+         * intertwined. Hopefully easier to back out just one of them if needed.
          */
         public static IEnumerable<CodeInstruction> FarmAnimal_draw_Transpiler(
                 IEnumerable<CodeInstruction> instructions,
                 ILGenerator generator,
                 MethodBase original)
         {
-            Label defaultStart = generator.DefineLabel();
-            Label storeLocal = generator.DefineLabel();
+            CodeMatcher cm = new(instructions);
+
+            // the yJumpOffset patch
+            Label offsetSkip = generator.DefineLabel();
+            FieldInfo hopOffsetField = typeof(FarmAnimal).GetField(
+                    nameof(FarmAnimal.hopOffset),
+                    BindingFlags.Public | BindingFlags.Instance);
+            MethodInfo Vector2GetZero = typeof(Vector2).GetProperty(
+                    nameof(Vector2.Zero),
+                    BindingFlags.Public | BindingFlags.Static).GetGetMethod();
+            MethodInfo Vector2OpEquality = typeof(Vector2).GetMethod(
+                    "op_Equality",
+                    BindingFlags.Public | BindingFlags.Static);
+            // the callvirt is just to disambiguate, hence the Advance(1) after
+            cm.MatchStartForward(
+                    new CodeMatch(OpCodes.Callvirt),
+                    new(OpCodes.Ldloca_S),
+                    new(OpCodes.Ldflda))
+            .Advance(1)
+            .ExtractLabels(out IEnumerable<Label> existing)
+            .InsertAndAdvanceWithLabels(existing,
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new(OpCodes.Ldfld, hopOffsetField),
+                    new(OpCodes.Call, Vector2GetZero),
+                    new(OpCodes.Call, Vector2OpEquality),
+                    new(OpCodes.Brtrue_S, offsetSkip))
+            .MatchStartForward(
+                    new CodeMatch(OpCodes.Ldloca_S),
+                    new(OpCodes.Call),
+                    new(OpCodes.Ldfld))
+            .AddLabels(new []{offsetSkip});
+
+            // the drawOnTop patch
+            Label drawStart = generator.DefineLabel();
+            Label drawSkip = generator.DefineLabel();
             FieldInfo drawOnTopField = typeof(FarmAnimal).GetField(
                     nameof(FarmAnimal.drawOnTop),
                     BindingFlags.Public | BindingFlags.Instance);
-            List<CodeInstruction> injection = new() {
-                new(OpCodes.Ldarg_0),
-                new(OpCodes.Ldfld, drawOnTopField),
-                new(OpCodes.Brfalse_S, defaultStart),
-                new(OpCodes.Ldc_R4, 0.991f),
-                new(OpCodes.Br_S, storeLocal),
-            };
-            List<CodeInstruction> codes = instructions.ToList();
-            List<CodeInstruction> modified = new();
-            int foundIndex = -1;
-            for (int i = 0; i < codes.Count; ++i) {
-                var instr = codes[i];
-                if (foundIndex >= 0 || i+2 >= codes.Count ||
-                        codes[i].opcode != OpCodes.Ldloca_S ||
-                        codes[i+1].opcode != OpCodes.Call ||
-                        codes[i+2].opcode != OpCodes.Ldfld) {
-                    modified.Add(instr);
-                    continue;
-                }
-                modified.AddRange(injection);
-                instr.labels.Add(defaultStart);
-                modified.Add(instr);
-                foundIndex = i;
-            }
-            if (foundIndex >= 0) {
-                for (int i = foundIndex+injection.Count+1; i < modified.Count; ++i) {
-                    if (modified[i].opcode == OpCodes.Stloc_S) {
-                        modified[i].labels.Add(storeLocal);
-                        break;
-                    }
-                }
-            }
-            return modified;
+            // already in the correct spot
+            cm.ExtractLabels(out IEnumerable<Label> bucket)
+            .AddLabels(new []{drawStart})
+            .InsertAndAdvanceWithLabels(bucket,
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new(OpCodes.Ldfld, drawOnTopField),
+                    new(OpCodes.Brfalse_S, drawStart),
+                    new(OpCodes.Ldc_R4, 0.991f),
+                    new(OpCodes.Br_S, drawSkip))
+            .MatchStartForward(
+                    new CodeMatch(OpCodes.Stloc_S))
+            .AddLabels(new []{drawSkip});
+
+            return cm.InstructionEnumeration();
         }
     }
 

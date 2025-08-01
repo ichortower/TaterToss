@@ -5,6 +5,10 @@ using System.Reflection.Emit;
 
 namespace ichortower.TaterToss;
 
+/*
+ * Add a few useful shorthands to CodeMatcher to make dealing with labels
+ * slightly easier.
+ */
 internal static class CodeMatcherExtensions
 {
     /*
@@ -17,7 +21,7 @@ internal static class CodeMatcherExtensions
      *   List<Label> temp = new();
      *   cm.MatchStartForward(...)
      *   .ExtractLabels(out temp)
-     *   .InsertAndAdvance(
+     *   .InsertAndAdvanceWithLabels(temp, ...)
      */
     public static CodeMatcher ExtractLabels(this CodeMatcher cm, out IEnumerable<Label> labels)
     {
